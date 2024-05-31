@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monster Gallery</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div id="mySidenav" class="sidenav">
+    <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+    <a href="#">About</a>
+    <a href="#">Services</a>
+    <a href="#">Clients</a>
+    <a href="#">Contact</a>
+  </div>
+
+  <span onclick="openNav()">open</span>
+
+  <div id="main">
+    <div class="container">
+      <div class="image-frame">
+        <img id="currentImage" src="" alt="Monster Image">
+      </div>
+      <div class="arrow left-arrow" onclick="showPreviousMonster()">&lt;</div>
+      <div class="arrow right-arrow" onclick="showNextMonster()">&gt;</div>
+      
+      <div class="monster-info">
+        <h2 id="monsterName"></h2>
+        <p id="monsterDescription"></p>
+        <p id="monsterHealth"></p>
+        <p id="monsterWeaknesses"></p>
+        <p id="monsterResistances"></p>
+      </div>
+      
+      <div class="health-bar-container">
+        <div id="healthBar" class="health-bar"></div>
+      </div>
+
+      <div class="attack-container">
+        <input id="attackInput" type="text" placeholder="Enter attack">
+        <button onclick="submitAttack()">Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openNav() {
+      document.getElementById("mySidenav").style.width = "250px";
+    }
+
+    function closeNav() {
+      document.getElementById("mySidenav").style.width = "0";
+    }
+
+    // Array of monsters passed from the controller
+ 
+  var monsters = <%- JSON.stringify(monsters) %>;
+  var currentIndex = <%= currentMonsterIndex %>;
+  var currentMonster = monsters[currentIndex];
+  var healthBar = document.getElementById('healthBar');
+
+  function showMonster(index) {
+    currentMonster = monsters[index];
+    document.getElementById('currentImage').src = '/images/' + currentMonster.image;
+    document.getElementById('monsterName').innerText = currentMonster.name;
+    document.getElementById('monsterDescription').innerText = currentMonster.description;
+    document.getElementById('monsterHealth').innerText = 'Health: ' + currentMonster.health;
+    document.getElementById('monsterWeaknesses').innerText = 'Weaknesses: ' + currentMonster.weaknesses.join(', ');
+    document.getElementById('monsterResistances').innerText = 'Resistances: ' + currentMonster.resistances.join(', ');
+    updateHealthBar(currentMonster.health);
+    updateCurrentMonsterOnServer(index);
+  }
+
+  function updateHealthBar(health) {
+    var percentage = (health / 100) * 100; // Assuming max health is 100
+    healthBar.style.width = percentage + '%';
+  }
+
+  function showNextMonster() {
+    currentIndex = (currentIndex + 1) % monsters.length;
+    showMonster(currentIndex);
+  }
+
+  function showPreviousMonster() {
+    currentIndex = (currentIndex - 1 + monsters.length) % monsters.length;
+    showMonster(currentIndex);
+  }
+
+  function submitAttack() {
+    var attack = document.getElementById('attackInput').value;
+    if (currentMonster.weaknesses.includes(attack)) {
+      currentMonster.health -= (currentMonster.health * 0.3);
+    } else if (currentMonster.resistances.includes(attack)) {
+      currentMonster.health -= (currentMonster.health * 0.2);
+    }
+    currentMonster.health = Math.floor(currentMonster.health);
+
+    if (currentMonster.health <= 0) {
+      currentIndex = (currentIndex + 1) % monsters.length;
+      showMonster(currentIndex);
+    }
+
+    document.getElementById('monsterHealth').innerText = 'Health: ' + currentMonster.health;
+    updateHealthBar(currentMonster.health);
+    updateMonsterHealthOnServer(currentIndex, currentMonster.health);
+  }
+
+  function updateCurrentMonsterOnServer(index) {
+    fetch('/updateCurrentMonster', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ currentMonsterIndex: index }),
+    }).then(response => response.json())
+      .then(data => {
+        if (!data.success) {
+          console.error('Failed to update current monster on server');
+        }
+      }).catch((error) => {
+        console.error('Error:', error);
+      });
+  }
+
+  function updateMonsterHealthOnServer(index, health) {
+    fetch('/updateMonsterHealth', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ monsterIndex: index, health: health }),
+    }).then(response => response.json())
+      .then(data => {
+        if (!data.success) {
+          console.error('Failed to update monster health on server');
+        }
+      }).catch((error) => {
+        console.error('Error:', error);
+      });
+  }
+
+  // Initial display of the first monster
+  showMonster(currentIndex);
+</script>
+
+</body>
+</html>

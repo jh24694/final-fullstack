@@ -1,0 +1,30 @@
+[
+    {
+        "name": "globby",
+        "health": 25,
+        "weaknesses": ["kick", "fire"],
+        "resistances": ["water", "punch"],
+        "image": "globby.png"
+    },
+    {
+        "name": "buggy",
+        "health": 50,
+        "weaknesses": ["fire", "water"],
+        "resistances": ["kick", "punch"],
+        "image": "buggy.png"
+    },
+    {
+        "name": "skully",
+        "health": 100,
+        "weaknesses": ["kick", "punch"],
+        "resistances": ["water", "fire"],
+        "image": "skully.png"
+    },
+    {
+        "name": "dragon",
+        "health": 200,
+        "weaknesses": ["secret"],
+        "resistances": ["water", "punch", "fire", "kick"],
+        "image": "dragon.png"
+    }
+]
